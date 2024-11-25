@@ -51,11 +51,7 @@ public final class CurrenciesServlet extends HttpServlet {
             String name = request.getParameter("name");
             String sign = request.getParameter("sign");
 
-            ClientRequestValidator.validate(code, name, sign)
-                    .notNull()
-                    .notEmpty()
-                    .limitLength(15)
-                    .end();
+            validation(code, name, sign);
 
             CurrencyRequestDTO currencyRequestDTO = new CurrencyRequestDTO(code, name, sign);
             Optional<CurrencyResponseDTO> currencyResponseDTO = currenciesService.findByCode(currencyRequestDTO.getCode());
@@ -72,6 +68,26 @@ public final class CurrenciesServlet extends HttpServlet {
         } catch (ObjectAlreadyExistsException exception) {
             ResponseUtils.send(response, SC_CONFLICT, exception);
         }
+    }
+
+    private static void validation(String code, String name, String sign) throws IncorrectParamsException {
+        ClientRequestValidator.validate(code, name, sign)
+                .notNull()
+                .notEmpty()
+                .end();
+
+        ClientRequestValidator.validate(code, name)
+                .limitLength(15)
+                .hasOnlyEnglishLetters()
+                .end();
+
+        ClientRequestValidator.validate(code)
+                .isCurrencyCode()
+                .end();
+
+        ClientRequestValidator.validate(sign)
+                .isCurrencySign()
+                .end();
     }
 }
 

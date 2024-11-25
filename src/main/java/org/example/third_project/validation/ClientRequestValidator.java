@@ -7,15 +7,6 @@ import java.util.function.Predicate;
 
 public final class ClientRequestValidator {
 
-
-    public static void validateForm(String... params) throws IncorrectParamsException {
-        for (String element : params) {
-            if (element == null || element.isEmpty()) {
-                throw new IncorrectParamsException("Your request contains null or empty params");
-            }
-        }
-    }
-
     private final Object[] values;
     private final StringBuilder errors;
 
@@ -32,7 +23,7 @@ public final class ClientRequestValidator {
         for (Object value : values) {
             if (value == null) {
                 errors.append("The required form field is missing. ");
-                return this;
+                break;
             }
         }
 
@@ -43,7 +34,7 @@ public final class ClientRequestValidator {
         for (Object value : values) {
             if (String.valueOf(value).isEmpty()) {
                 errors.append("Form value must not be empty. ");
-                return this;
+                break;
             }
         }
 
@@ -52,7 +43,7 @@ public final class ClientRequestValidator {
 
     private static final String CURRENCY_CODE_REGEX = "^[A-Z]{3}$";
 
-    public ClientRequestValidator isCurrency() {
+    public ClientRequestValidator isCurrencyCode() {
         for (Object value : values) {
             if (String.valueOf(value).matches(CURRENCY_CODE_REGEX) != true) {
                 errors.append("Currency code must be a valid currency format. ");
@@ -74,7 +65,7 @@ public final class ClientRequestValidator {
         for (Object value : values) {
             if (predicate.test(value)) {
                 errors.append(messageError);
-                return this;
+                break;
             }
         }
 
@@ -113,6 +104,16 @@ public final class ClientRequestValidator {
 
     public ClientRequestValidator limitLength(int max) {
         runThrough(element -> String.valueOf(element).length() > max, "Too long values. Max " + max);
+        return this;
+    }
+
+    public ClientRequestValidator hasOnlyEnglishLetters() {
+        runThrough(element -> String.valueOf(element).matches("[a-zA-Z]+") != true, "Must be English letters only.");
+        return this;
+    }
+
+    public ClientRequestValidator isCurrencySign() {
+        runThrough(element -> String.valueOf(element).matches("^\\p{Sc}$") != true, "Must be a valid currency sign.");
         return this;
     }
 }

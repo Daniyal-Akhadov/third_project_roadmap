@@ -97,7 +97,7 @@ public final class ExchangeRateServlet extends HttpServlet {
                 .notNull()
                 .notEmpty()
                 .limitLength(10)
-                .isCurrency()
+                .isCurrencyCode()
                 .end();
     }
 
