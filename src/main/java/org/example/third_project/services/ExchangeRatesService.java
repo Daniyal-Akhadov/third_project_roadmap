@@ -25,7 +25,8 @@ public class ExchangeRatesService {
     }
 
     public List<ExchangeRateResponseDTO> findAll() {
-        return exchangeRatesDAO.findAll().stream()
+        List<ExchangeRate> all = exchangeRatesDAO.findAll();
+        return all.stream()
                 .map(MappingUtils::toExchangeRateResponseDTO)
                 .collect(toList());
     }
@@ -42,7 +43,8 @@ public class ExchangeRatesService {
         Currency base = MappingUtils.toModel(currencyBaseResponseDTO);
         Currency target = MappingUtils.toModel(currencyTargetResponseDTO);
 
-        return exchangeRatesDAO.find(base, target)
+        Optional<ExchangeRate> exchangeRate = exchangeRatesDAO.find(base, target);
+        return exchangeRate
                 .map(MappingUtils::toExchangeRateResponseDTO);
     }
 

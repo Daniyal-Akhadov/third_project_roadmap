@@ -56,11 +56,14 @@ public class ExchangeRatesServlet extends HttpServlet {
             ClientRequestValidator.validate(baseCurrencyCode, targetCurrencyCode, rate)
                     .notNull()
                     .notEmpty()
-                    .limitLength(10)
+                    .end();
+
+            ClientRequestValidator.validate(baseCurrencyCode, targetCurrencyCode)
+                    .isStringEquals(false)
                     .end();
 
             ClientRequestValidator.validate(rate)
-                    .isNumber()
+                    .isPositiveNumber()
                     .end();
 
             Optional<CurrencyResponseDTO> baseCode = currenciesService.findByCode(baseCurrencyCode);
@@ -71,7 +74,7 @@ public class ExchangeRatesServlet extends HttpServlet {
                 Optional<ExchangeRateResponseDTO> exchangeRate = exchangeRateService.findBy(baseCode.get(), targetCode.get());
 
                 if (exchangeRate.isPresent()) {
-                    throw new ObjectAlreadyExistsException();
+                    throw new ObjectAlreadyExistsException("Exchange rate already exists");
                 }
 
                 ExchangeRateRequestDTO exchangeRateRequestDTO = new ExchangeRateRequestDTO(baseCode.get(), targetCode.get(), Double.parseDouble(rate));

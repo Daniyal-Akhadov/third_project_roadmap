@@ -41,7 +41,7 @@ public final class ExchangeRateServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
         try {
             ClientCodes clientCodes = getClientCodes(request);
-            validate(clientCodes);
+            validation(clientCodes.base, clientCodes.target);
 
             Optional<ExchangeRateResponseDTO> exchangeRateResponseDTO = exchangeRatesService.findByCode(clientCodes.base(), clientCodes.target());
 
@@ -58,18 +58,13 @@ public final class ExchangeRateServlet extends HttpServlet {
 
     private void doPatch(HttpServletRequest request, HttpServletResponse response) throws IOException {
         try {
-            ClientCodes clientCodes = getClientCodes(request);
-            validate(clientCodes);
+            ClientCodes result = getClientCodes(request);
             String rate = getRate(request);
-            ClientRequestValidator.validate(rate)
-                    .notNull()
-                    .notEmpty()
-                    .limitLength(10)
-                    .isNumber()
-                    .end();
+
+            validation(result.base(), result.target(), rate);
 
             Optional<ExchangeRateResponseDTO> exchangeRateResponseDTO =
-                    exchangeRatesService.findByCode(clientCodes.base(), clientCodes.target());
+                    exchangeRatesService.findByCode(result.base(), result.target());
 
             if (exchangeRateResponseDTO.isPresent()) {
                 exchangeRateResponseDTO.get().setRate(Double.parseDouble(rate));
@@ -84,23 +79,6 @@ public final class ExchangeRateServlet extends HttpServlet {
         }
     }
 
-    private static String getRate(HttpServletRequest request) throws IOException {
-        return request.getReader()
-                .lines()
-                .filter((line) -> line.startsWith("rate"))
-                .map((line) -> line.split("=")[1])
-                .collect(Collectors.joining());
-    }
-
-    private static void validate(ClientCodes clientCodes) throws IncorrectParamsException {
-        ClientRequestValidator.validate(clientCodes.base(), clientCodes.target())
-                .notNull()
-                .notEmpty()
-                .limitLength(10)
-                .isCurrencyCode()
-                .end();
-    }
-
     private static ClientCodes getClientCodes(HttpServletRequest request) throws IncorrectParamsException {
         String[] codes = CurrencyExtractor.extract(request.getPathInfo());
         String base = codes[0];
@@ -110,6 +88,32 @@ public final class ExchangeRateServlet extends HttpServlet {
 
     private record ClientCodes(String base, String target) {
 
+    }
+    private void validation(String base, String target, String rate) throws IncorrectParamsException {
+        validation(base, target);
+        ClientRequestValidator.validate( rate)
+                .notNull()
+                .notEmpty()
+                .limitLength(10)
+                .isPositiveNumber()
+                .end();
+    }
+
+    private void validation(String base, String target) throws IncorrectParamsException {
+        ClientRequestValidator.validate(base, target)
+                .notNull()
+                .notEmpty()
+                .limitLength(10)
+                .isCurrencyCode()
+                .end();
+    }
+
+    private static String getRate(HttpServletRequest request) throws IOException {
+        return request.getReader()
+                .lines()
+                .filter((line) -> line.startsWith("rate"))
+                .map((line) -> line.split("=")[1])
+                .collect(Collectors.joining());
     }
 }
 

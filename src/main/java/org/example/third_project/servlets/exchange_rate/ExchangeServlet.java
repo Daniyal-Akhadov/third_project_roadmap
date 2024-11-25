@@ -49,7 +49,7 @@ public final class ExchangeServlet extends HttpServlet {
                     .end();
 
             ClientRequestValidator.validate(amount)
-                    .isNumber()
+                    .isPositiveNumber()
                     .end();
 
             ClientRequestValidator.validate(from, to)

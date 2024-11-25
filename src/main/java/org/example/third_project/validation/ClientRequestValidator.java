@@ -61,21 +61,15 @@ public final class ClientRequestValidator {
         }
     }
 
-    private ClientRequestValidator runThrough(Predicate<Object> predicate, String messageError) {
-        for (Object value : values) {
-            if (predicate.test(value)) {
-                errors.append(messageError);
-                break;
-            }
-        }
-
-        return this;
-    }
-
-    public ClientRequestValidator isNumber() {
+    public ClientRequestValidator isPositiveNumber() {
         for (Object value : values) {
             try {
-                Double.parseDouble(String.valueOf(value));
+                double number = Double.parseDouble(String.valueOf(value));
+
+                if (number <= 0) {
+                    errors.append("Negative numbers are not allowed. ");
+                    break;
+                }
             } catch (NumberFormatException e) {
                 errors.append("Number from form must be a valid number. ");
                 return this;
@@ -103,17 +97,25 @@ public final class ClientRequestValidator {
     }
 
     public ClientRequestValidator limitLength(int max) {
-        runThrough(element -> String.valueOf(element).length() > max, "Too long values. Max " + max);
-        return this;
+       return runThrough(element -> String.valueOf(element).length() > max, "Too long values. Max " + max);
     }
 
     public ClientRequestValidator hasOnlyEnglishLetters() {
-        runThrough(element -> String.valueOf(element).matches("[a-zA-Z]+") != true, "Must be English letters only.");
-        return this;
+        return runThrough(element -> String.valueOf(element).matches("[a-zA-Z]+") != true, "Must be English letters only.");
     }
 
     public ClientRequestValidator isCurrencySign() {
-        runThrough(element -> String.valueOf(element).matches("^\\p{Sc}$") != true, "Must be a valid currency sign.");
+        return runThrough(element -> String.valueOf(element).matches("^\\p{Sc}$") != true, "Must be a valid currency sign.");
+    }
+
+    private ClientRequestValidator runThrough(Predicate<Object> predicate, String messageError) {
+        for (Object value : values) {
+            if (predicate.test(value)) {
+                errors.append(messageError);
+                break;
+            }
+        }
+
         return this;
     }
 }

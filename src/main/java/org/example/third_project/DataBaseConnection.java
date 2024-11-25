@@ -2,6 +2,7 @@ package org.example.third_project;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
 
 import java.sql.Connection;
@@ -18,12 +19,9 @@ public final class DataBaseConnection {
         hikariDataSource = new HikariDataSource(config);
     }
 
+    @SneakyThrows
     public static Connection get() {
-        try {
-            return hikariDataSource.getConnection();
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+        return hikariDataSource.getConnection();
     }
 
     private static HikariConfig hikariConfig() {

@@ -100,7 +100,6 @@ public final class ExchangeRatesDAO {
         }
     }
 
-    @SneakyThrows
     public Optional<ExchangeRate> find(Currency base, Currency target) {
         Optional<ExchangeRate> result;
 
@@ -114,6 +113,8 @@ public final class ExchangeRatesDAO {
             ExchangeRate exchangeRate = buildExchangeRate(resultSet);
 
             result = Optional.of(exchangeRate);
+        } catch (SQLException e) {
+            result = Optional.empty();
         }
 
         return result;
